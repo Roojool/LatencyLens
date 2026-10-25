@@ -35,7 +35,7 @@ async function readBody(request: Request): Promise<string> {
     ]);
   } finally {
     if (timer) clearTimeout(timer);
-    await reader.cancel().catch(() => undefined);
+    void reader.cancel().catch(() => undefined);
   }
 }
 
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
   let workflowId: string | null = null;
   let workflowMode: DiagnosticResponse['workflowMode'] = 'direct';
   let warning: string | undefined;
-  let diagnosis: DiagnosticResponse['diagnosis'];
+  let diagnosis: DiagnosticResponse['diagnosis'] | undefined;
 
   if (temporalEnabled) {
     let connection: Connection | undefined;
@@ -73,33 +73,31 @@ export async function POST(request: Request) {
       connection = await Connection.connect({ address: process.env.TEMPORAL_ADDRESS || 'localhost:7233', connectTimeout: '3 seconds' });
       const client = new WorkflowClient({ connection });
       const candidateId = `latencylens-${randomUUID()}`;
-      diagnosis = await connection.withDeadline(Date.now() + temporalRpcTimeoutMs, async () => {
+      diagnosis = await bounded(connection.withDeadline(Date.now() + temporalRpcTimeoutMs, async () => {
         handle = await client.start('diagnosisWorkflow', {
           taskQueue: 'latencylens-diagnostics', workflowId: candidateId, workflowExecutionTimeout: '40 seconds', args: [measurement],
         });
         return await handle.result();
-      });
+      }), temporalRpcTimeoutMs);
       workflowId = candidateId;
       workflowMode = 'temporal';
     } catch {
       workflowMode = 'direct-fallback';
       warning = 'Temporal did not complete the diagnosis. Direct mode used.';
-      if (handle && connection) await connection.withDeadline(Date.now() + 1_000, () => handle!.cancel()).catch(() => undefined);
+      if (handle && connection) await bounded(connection.withDeadline(Date.now() + 1_000, () => handle!.cancel()), 1_000).catch(() => undefined);
     } finally {
-      await connection?.close().catch(() => undefined);
+      if (connection) await bounded(connection.close(), 1_000).catch(() => undefined);
     }
   }
 
-  if (!diagnosis!) {
+  if (!diagnosis) {
     try {
       diagnosis = await bounded(diagnoseActivity(measurement), diagnosisTimeoutMs);
     } catch {
       diagnosis = scoreMeasurement(measurement);
     }
-    if (!diagnosis.aiUsed) warning = appendWarning(warning, 'AI diagnosis unavailable or not configured. Deterministic analysis used.');
-  } else if (!diagnosis.aiUsed) {
-    warning = appendWarning(warning, 'AI diagnosis unavailable or not configured. Deterministic analysis used.');
   }
+  if (!diagnosis.aiUsed) warning = appendWarning(warning, 'AI diagnosis unavailable or not configured. Deterministic analysis used.');
 
   const result: DiagnosticResponse = { measurement, diagnosis, workflowMode, workflowId, ...(warning ? { warning } : {}) };
   return NextResponse.json(result);
