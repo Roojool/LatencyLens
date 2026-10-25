@@ -1,19 +1,19 @@
 # LatencyLens sprint board — setup first
 
-Ownership: [ROLE-MAP.md](ROLE-MAP.md). Do not start feature implementation until both engineers return their setup reports.
+Ownership: [ROLE-MAP.md](ROLE-MAP.md). Shared setup gate closed on 2026-10-25 after both independent reports were accepted. Core integration is verified; see [SPRINT-EVIDENCE.md](SPRINT-EVIDENCE.md) for startup commands, real workflow/model evidence and demo script.
 
-Current verification evidence and first build jobs: [TOOL-STATUS.md](TOOL-STATUS.md). Filled env files alone do not complete setup; PR3MM's independent report remains required.
+Current verification status: [TOOL-STATUS.md](TOOL-STATUS.md). Kepler GUI inspection remains explicitly blocked; probe hardening and dependency advisories remain separate work.
 
 | Priority | Owner | Task | Acceptance |
 |---|---|---|---|
-| P0 first | Roojool + PR3MM, independently | Complete `docs/SETUP.md` | GitHub push access, dependencies/checks, heuristic API smoke, real Jarvislabs smoke, agent working; sanitized reports from BOTH machines |
-| P0 first | Roojool | Verify Temporal CLI/server/worker and Kepler access | Actual workflow ID and completed history before enabling Temporal; real Kepler access or explicit blocker |
+| Done | Roojool + PR3MM, independently | Complete `docs/SETUP.md` | Both reports accepted; independent checks/provider/agent smoke and push access pass; PR3MM gh authentication now resolved |
+| P0 / partial | Roojool | Verify Temporal CLI/server/worker and Kepler access | Real combined Gemma workflow and completed history PASS; Kepler native Computer Use bridge BLOCKED, recorded honestly |
 | P0 before deployment | Roojool + PR3MM | Review dependency advisories | `npm audit` reports 4 findings (3 high, 1 moderate); coordinate Zod/OpenAI/Next/PostCSS upgrades and contract compatibility; no blind force fix |
 | P0 next | PR3MM | Scoring/fixtures and safe bounded probe | Healthy/loaded synthetic scenarios, deterministic boundary tests; no untrusted target fetching or fabricated readings |
-| P0 next | PR3MM | Harden main Gemma adapter | Finite timeout, validated JSON, truthful `aiUsed`, unchanged arithmetic, safe fallback, no private data sent to model |
-| P0 next | Roojool | Diagnosis API + Temporal integration | Bounded workflow/retries, actual ID on success, clear fallback on service/worker failure |
-| P0 next | Roojool | shadcn dashboard + all UI integration | Existing import/diagnose flow works; provenance/missing values honest; desktop/mobile evidence |
-| P0 last | Roojool + PR3MM | Merge and verify complete demonstration | Green tests/typecheck/build, sample/import → diagnosis → real model/workflow or visible fallback |
+| Done | PR3MM | Harden main Gemma adapter | PR #4 merged; finite timeout, validated stop-completion JSON, private free text excluded, real diagnostic success |
+| Done | Roojool | Diagnosis API + Temporal integration | PR #6 merged; bounded no-worker/service checks, completed-only IDs, combined safe warnings and shared Activity privacy guard |
+| Done | Roojool | shadcn-style dashboard + UI integration | PR #7 merged; keyboard import/diagnose, provenance/nulls, inspected desktop/mobile, no new dependencies |
+| Done | Roojool + PR3MM | Merge and verify complete demonstration | 24 tests/typecheck/build pass; actual sample/import → validated Gemma → completed Temporal → UI, plus visible direct fallback |
 | P1 | Roojool | Kepler operations evidence and recovery | Safe, repeatable demonstration after healthy E2E; no network configuration changes |
 | P1 | PR3MM | Before/after comparison fixtures | Only after P0 integrated; labeled provenance and repeatable results |
 

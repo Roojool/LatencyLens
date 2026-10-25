@@ -1,27 +1,30 @@
-# Tool verification and first build jobs
+# Current integration status — 2026-10-25
 
-Latest verification: 2026-10-25. Status is evidence from the named device, not a claim about both laptops.
+Core local demonstration PASS. Shared setup gate is closed: Roojool's checks and PR3MM's independent sanitized report were accepted. PR3MM's report and follow-up are recorded in [PR #4](https://github.com/Roojool/LatencyLens/pull/4#issuecomment-6396984749); his earlier gh authentication blocker is resolved.
 
-| Check | Roojool integration laptop | PR3MM laptop |
+| Check | Integration laptop evidence | PR3MM report |
 |---|---|---|
-| GitHub/main | Clean baseline main `89a1260`, matching origin; baseline CI green. Re-sync after the verification PR merges. | Write permission previously confirmed; local branch/hash report pending |
-| Jarvislabs/Gemma | Real completion PASS with `gemma-4-31b-it`; configuration and live smoke pass after token-budget correction | User reports env updated; actual live smoke report pending |
-| Temporal | CLI 1.9.1; loopback dev service; real synthetic workflow/activity COMPLETED with history evidence | Not required for secondary contributor's local work |
-| Kepler | Installed version `0.1.11-beta` confirmed; workspace/sign-in/agent command execution pending | User reports installed; workspace/agent smoke pending |
-| Tests/typecheck | Four tests pass; typecheck passes | Independent local results pending |
+| GitHub | Protected main; required green `checks`, strict updates, admin enforcement; PRs #4/#5/#6/#7 merged without bypass | Push permission PASS; gh authenticated |
+| Local checks | 24 tests pass; typecheck and production build pass | Clean install; 18 tests/typecheck/build pass before integration |
+| Jarvislabs | Real validated diagnostic output, `aiUsed=true`, exact model `gemma-4-31b-it`; deterministic values unchanged | Configuration and bounded live completion smoke PASS; model ID withheld in his report |
+| Temporal | Genuine combined model workflow completed, matching returned ID and completed Activity/history | Not required on his laptop |
+| Browser | Sample/import → API → score → Gemma → Temporal → UI PASS; desktop 1440×900 and mobile 390×844, no overflow or console errors | Independent heuristic HTTP smoke PASS; browser unavailable on his session |
+| Kepler | Process/sidecar running; actual GUI agent/log inspection BLOCKED by unavailable native Computer Use pipe after retry/reset | Claude Code coding-agent smoke PASS; Kepler not required |
 
-Production build also passes. Temporal workflow ID: `latencylens-setup-a077408b-c255-4b8f-812f-70a4fd755f8a`. History contained `ActivityTaskCompleted` and `WorkflowExecutionCompleted` (11 events). The temporary worker used process-only blank AI credentials and returned the deterministic synthetic result (`aiUsed=false`, `deltaMs=183.5`); no network measurement was taken. That temporary worker was stopped after verification so it cannot compete with a later configured worker. The local dev service remains available; its history is in-memory and disappears if restarted. This verifies Temporal SDK/worker execution, not the unfinished Next API outage/fallback integration or a combined live-Gemma workflow.
+## Real execution evidence
 
-## Findings for implementation
-- The original 32-token provider smoke returned no visible content; a 256-token smoke succeeds. The successful response included reasoning and used 46 completion tokens, so the earlier budget likely caused the empty answer. The setup script now uses 256, with bounded timeout and no retries. An empty answer alone does not prove invalid credentials.
-- The existing `analyzeWithGemma(sampleMeasurement)` call fails with `SyntaxError` while parsing diagnostic output. This is an application adapter issue despite working provider access. No raw model text or secrets were logged. PR3MM must investigate truncation, code-fence parsing, output constraints and fallback with focused mocks; preserve deterministic arithmetic and the frozen contract.
-- Four existing dependency advisories remain tracked in `TASKS.md`; no major upgrades were applied during verification.
+- Strict API smoke: `latencylens-9a599bdf-195e-4b8b-b939-8de06e30ab68`, 11 actual history events including completed Activity and Workflow, validated Gemma report, score `4`, delta `183.5`, no warning.
+- Browser-imported synthetic fixture: `latencylens-e78fdd93-7aec-4358-b59f-53fc2ff67c3e`, validated model report and completed Temporal execution shown in the UI.
+- Actual unreachable-service fallback: 3.031 seconds. Actual no-worker fallback: 40.111 seconds. Both return direct-fallback, null workflow ID, rule-based output and preserved Temporal/AI warnings.
+- Body size/read limits, generic errors, privacy sentinel capture, arithmetic invariance and workflow-ID truth are tested.
+- No live network readings are claimed: these demonstrations use explicitly synthetic data. No probe or disruptive worker-outage demonstration was run.
 
-## Release jobs after setup gate
-Roojool releases implementation only after receiving PR3MM's clean synchronization/check/live-provider report and a working coding-agent session. Kepler on the integration laptop must also execute the harmless workspace smoke in `SETUP.md`. Do not infer readiness from installation or filled env files.
+## Remaining work and limits
 
-**Lead agent:** follow `prompts/00-CODEX-TAKEOVER.md`. First ship bounded workflow/API execution and clear service/worker fallback, then shadcn dashboard integration. Lead owns all UI/Temporal/API/config. Optional configured workers use isolated ownership/worktrees.
+- Kepler inspection is unverified; direct process/history checks are not Kepler evidence. Record the native bridge blocker when presenting the demo.
+- Four dependency audit findings remain (3 high, 1 moderate). No forced major Next/Zod migration; coordinate before public deployment.
+- PR3MM owns separate safe-probe hardening and fixture work. The old probe must not be used as a trusted allowlisted collector yet.
+- Comparisons, history, auth, databases, deployment and major migrations remain deferred.
+- Temporal dev history is in memory. Keep the current service running for the demo.
 
-**PR3MM agent:** follow `prompts/02-measurements.md`. First fix the verified diagnostic JSON failure in `src/lib/ai.ts` with provider-response tests (success, truncation/malformed output, provider failure, unchanged score/severity/delta/ratio), then healthy/loaded fixtures and safe bounded probe hardening. No edits to lead-owned UI/API/Temporal/dependencies without coordination.
-
-Both engineers preserve existing work, branch from current main, run tests/typecheck/build, open small PRs and require green protected-main checks. Neither runs load probes during setup. Tanvi/Manish remain presentation/video only.
+See [SPRINT-EVIDENCE.md](SPRINT-EVIDENCE.md) for exact startup, redacted artifacts and the three-minute script. Contracts are unchanged; private environment files were not edited or committed.
