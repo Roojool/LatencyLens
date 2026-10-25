@@ -1,11 +1,26 @@
-# UI design direction
+# LatencyLens design — shadcn dashboard reference (ACTIVE)
 
-Brand: LatencyLens / Network Intelligence. Inspired by professional observability tools, not a generic chat app.
-Palette: midnight ink `#0b1422`, panel navy `#142237`, border slate `#283a51`, cyan `#55d8da`, warning amber `#f9ab66`, success mint `#74d4b1`.
-Type: system / Inter. Monospace numeric metrics optional. Strong spacing, minimal gradients, no glass overload.
+**Exact reference:** https://ui.shadcn.com/examples/dashboard
 
-Main view: sidebar (Overview, Diagnostics, History future), header, four KPI cards, line trace with idle/loaded band, AI root cause panel, evidence/workflow panel. Show clear source banner DEMO vs LIVE. Design must work at 390px width.
+Build a professional, compact, neutral **shadcn/ui analytics dashboard**. This supersedes the older navy/cyan neon aesthetic. Use the reference as visual inspiration, not an exact app/function copy. Do not recreate the Next.js project.
 
-Interaction: one primary CTA Run AI Diagnosis, secondary Import Measurement, no dead buttons (label future items as coming soon). Loading status, error, and no-API fallback must be visible. Accessible contrast and text labels, not color-only severity.
+## Direction
+- Default light or clean charcoal theme with subtle neutral surfaces; use semantic tokens, near-invisible borders, restrained shadows, rounded-xl cards, no gradients/glow/glass.
+- Desktop: collapsible left sidebar (Overview active, Diagnostics, Compare [coming soon], History [coming soon]); compact header/breadcrumb; title + Import JSON and Run diagnosis actions.
+- Metrics: four shadcn Cards: idle latency, loaded latency, added delay, heuristic score. Units and input provenance shown; null `—`.
+- Middle: large time-series latency chart with idle/loaded legend and visible synthetic-vs-local provenance. Reuse existing plot logic/data, or use Recharts only if W1 approves dependency.
+- Lower: AI diagnosis `Card` (severity, headline, evidence, safe actions) and workflow `Card` (Temporal status, workflow ID, last warning). Avoid fake interactive nav.
+- Components: `Card`, `Button`, `Badge`, `Separator`, optional `Tabs`, `Sidebar`, `Skeleton`, `Tooltip` and `lucide-react`. W1 handles shadcn CLI/init/install and `src/components/ui/**`; Tanvi owns only composed dashboard components under `src/components/dashboard/**`.
+- Type: system/Inter, 13–14px interface text, 28–32px page header, monospace/tabular metrics.
+- Accessible contrast and focus; keyboard-operable import/run; responsive at 390px; no dead controls.
+- Data: never show synthetic readings as 'live'. Show `workflowMode=temporal` only when returned by backend and `aiUsed=true` only after verified model call.
 
-Bonus v2 concepts: split-screen Before vs After SQM, jitter plot, multi-device comparisons, one-click report export, local-mode privacy indicator, shareable annotated result.
+## Minimal Tanvi deliverables
+`src/components/dashboard/dashboard-shell.tsx` (sidebar/header/layout),
+`metric-cards.tsx` (four metric cards from typed props),
+`diagnosis-panels.tsx` (diagnosis/workflow/status cards).
+
+Optional `latency-panel.tsx` for chart container if time; existing `Trace` chart can be preserved and composed by W1. Tanvi should not edit `src/app/page.tsx`, `src/app/globals.css`, the API, config or dependencies.
+
+## Judge screenshot
+At 1440×900 show sidebar + summary row + latency chart + root cause. At phone width show stacked cards, chart and action CTA.

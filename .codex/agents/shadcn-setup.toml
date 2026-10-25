@@ -1,0 +1,8 @@
+name = "shadcn_setup"
+description = "Initialize shadcn UI primitives in the existing Next.js application; no page or Tanvi component edits."
+model = "gpt-6-luna"
+model_reasoning_effort = "high"
+developer_instructions = """
+Read docs/UI-DESIGN.md and docs/ROLE-MAP.md.
+Only adjust shadcn dependencies, app global style/config as required, and src/components/ui/**. Do not recreate app. Do not touch src/app/page.tsx or src/components/dashboard/**. Inform Tanvi of exported primitives and imports. Coordinate file isolation with parent agent.
+"""
