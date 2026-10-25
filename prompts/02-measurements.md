@@ -14,9 +14,9 @@ Read `AGENTS.md`, `docs/ROLE-MAP.md`, `docs/TASKS.md`, `docs/CONTRACTS.md`, `doc
 ## Then: implement the smallest complete P0 slice
 Own ONLY `src/lib/scoring.ts`, `src/lib/sample.ts`, `src/lib/ai.ts`, `scripts/probe.mjs`, `tests/scoring.test.ts`, and new tests for those modules. You are not alone in this codebase; preserve others' changes. Shared dependencies/contracts need lead agreement.
 
-1. Audit arithmetic/boundaries and provenance; add focused tests and healthy/high-inflation SYNTHETIC fixtures while preserving exports.
-2. Harden local HTTPS probe: fixed/allowlisted trusted endpoints, bounded requests/bytes/timeouts, no arbitrary URL fetching/high-volume scans. No load traffic during setup. Label HTTPS estimates honestly; never claim ICMP or certified bufferbloat grades.
-3. Harden server-side Gemma adapter: bounded timeout, validated JSON, safe deterministic fallback, no secrets/private targets in prompts/errors, and `aiUsed=true` only after successful real completion/validation. LLM must never change score/severity/delta/ratio.
+1. First fix the observed diagnostic JSON parse failure documented in `docs/TOOL-STATUS.md`: provider access works but `analyzeWithGemma(sampleMeasurement)` fails with `SyntaxError`. Investigate truncation/code fences and output validation; never treat a provider connectivity check as validated diagnostic JSON. Harden server-side Gemma adapter: bounded timeout, safe deterministic fallback, no secrets/private targets in prompts/errors, and `aiUsed=true` only after successful real completion/validation. LLM must never change score/severity/delta/ratio.
+2. Audit arithmetic/boundaries and provenance; add focused tests and healthy/high-inflation SYNTHETIC fixtures while preserving exports.
+3. Harden local HTTPS probe: fixed/allowlisted trusted endpoints, bounded requests/bytes/timeouts, no arbitrary URL fetching/high-volume scans. No load traffic during setup. Label HTTPS estimates honestly; never claim ICMP or certified bufferbloat grades.
 4. Test malformed output, provider failure and unchanged arithmetic using mocks; live smoke is opt-in only. Preserve frozen contract and caller expectations.
 5. Run `npm run test`, `npm run typecheck`, `npm run build`. Commit/push, open a small PR, return URL/evidence/exports/integration notes. Never merge failing CI or bypass protection. Coordinate next slice after merge or explicit safe parallel approval.
 

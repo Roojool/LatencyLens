@@ -28,7 +28,8 @@ if (process.argv.includes('--live-ai') && ready) {
   try {
     const client = new OpenAI({ apiKey: key, baseURL: process.env.JARVISLABS_BASE_URL || 'https://models.jarvislabs.net/v1', timeout: 17000, maxRetries: 0 });
     const response = await client.chat.completions.create({
-      model, max_tokens: 32, temperature: 0,
+      // Gemma consumes tokens for reasoning before producing visible content.
+      model, max_tokens: 256, temperature: 0,
       messages: [{ role: 'user', content: 'Reply with the single word READY.' }],
     });
     check(Boolean(response.choices[0]?.message?.content?.trim()), 'Real provider completion returned nonempty content');
