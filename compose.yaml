@@ -1,0 +1,44 @@
+name: latencylens-docker
+
+x-app: &app
+  build: .
+  image: latencylens-demo:local
+  init: true
+  restart: unless-stopped
+  environment:
+    TEMPORAL_ENABLED: "true"
+    TEMPORAL_ADDRESS: temporal:7233
+    JARVISLABS_API_KEY: ${JARVISLABS_API_KEY:-}
+    JARVISLABS_MODEL: ${JARVISLABS_MODEL:-}
+    JARVISLABS_BASE_URL: ${JARVISLABS_BASE_URL:-https://models.jarvislabs.net/v1}
+  depends_on:
+    temporal:
+      condition: service_healthy
+
+services:
+  temporal:
+    image: temporalio/temporal:1.9.1
+    command: ["server", "start-dev", "--ip", "0.0.0.0"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8234:8233"
+    healthcheck:
+      test: ["CMD", "temporal", "operator", "cluster", "health", "--address", "127.0.0.1:7233"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  app:
+    <<: *app
+    ports:
+      - "127.0.0.1:3002:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  worker:
+    <<: *app
+    command: ["npm", "run", "worker"]
