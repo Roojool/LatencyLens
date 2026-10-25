@@ -1,0 +1,25 @@
+# Update trusted team branches after main changes. GitHub will re-run CI on updated PR head.
+name: Refresh Team PR Branches
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refresh safe team branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          owner="${GH_REPO%%/*}"
+          gh pr list --repo "$GH_REPO" --state open --limit 40 --json number,headRefName,isDraft,headRepositoryOwner | jq -r --arg owner "$owner" '.[] | select(.isDraft == false and .headRepositoryOwner.login == $owner and (.headRefName | startswith("feat/"))) | .number' | while read -r pr; do
+            # GitHub updates only cleanly mergeable PRs. Conflicts require the author.
+            echo "Attempting safe branch refresh: PR #$pr"
+            gh api --method PUT "repos/${GH_REPO}/pulls/${pr}/update-branch" > /dev/null || true
+          done

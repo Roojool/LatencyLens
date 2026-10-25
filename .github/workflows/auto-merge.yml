@@ -1,0 +1,39 @@
+# Never checkout untrusted PR code in pull_request_target.
+# Same-repo trusted collaborators only; excludes sensitive config changes.
+name: Guarded Auto Merge
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  queue:
+    if: >-
+      ${{ !github.event.pull_request.draft &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          startsWith(github.event.pull_request.head.ref, 'feat/') &&
+          contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.pull_request.author_association) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for sensitive files (never auto-merge these)
+        id: safe
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GH_REPO}/pulls/${PR_NUMBER}/files" --paginate --jq '.[].filename' > /tmp/changed.txt
+          if grep -Eq '^(\.github/|package\.json$|package-lock\.json$|AGENTS\.md$|src/lib/contracts\.ts$|scripts/bootstrap-public\.ps1$)' /tmp/changed.txt; then
+            echo 'allowed=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'allowed=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Queue squash merge after mandatory CI
+        if: steps.safe.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: gh pr merge "$PR_NUMBER" --repo "$GH_REPO" --auto --squash --delete-branch
