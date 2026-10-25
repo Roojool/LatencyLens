@@ -1,5 +1,7 @@
 # Local runbook
 
+The integrated demo's verified process-only startup commands, workflow IDs, screenshots and three-minute script are in [SPRINT-EVIDENCE.md](SPRINT-EVIDENCE.md#exact-startup). Both independent setup reports have been accepted. Private environment files were preserved.
+
 Complete [SETUP.md](SETUP.md) on both engineers' machines first. Use `npm ci`, preserve an existing ignored `.env.local`, and keep Temporal disabled during the initial heuristic smoke.
 
 ## Direct diagnosis
