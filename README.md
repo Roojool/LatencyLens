@@ -1,56 +1,46 @@
 # LatencyLens — Evidence-led AI Network Diagnostics
 
-A three-hour Hacktoberfest Hack Day Pune 2026 starter. Four developers build in parallel using Kepler (infrastructure development), Temporal (durable orchestration), and Jarvislabs Gemma 4 (server-side diagnostics).
+An open-source hackathon app: synthetic or local HTTPS timings → deterministic analysis → optional real Jarvislabs Gemma explanation → truthful Temporal execution status.
 
-## Quick start
+**Two engineers:** Roojool leads app/UI, Temporal/API, dependencies and integration; PR3MM owns measurements/scoring/probe/Gemma. Tanvi and Manish handle presentation/video only. [Ownership](docs/ROLE-MAP.md) and [tasks](docs/TASKS.md) are authoritative.
+
+## Start with setup
+
+Both engineers complete [docs/SETUP.md](docs/SETUP.md) before feature implementation. A starter already exists; do not recreate the app.
 
 ```powershell
-npm install
-Copy-Item .env.example .env.local
+npm ci
+if (-not (Test-Path .env.local)) { Copy-Item .env.example .env.local }
+npm run test
+npm run typecheck
+npm run build
 npm run dev
 ```
 
-Visit `http://localhost:3000`. Synthetic sample is clearly labeled. Press **Run AI diagnosis**. The rule-based path works without API keys or Temporal.
+Open `http://localhost:3000` and click **Run AI diagnosis**. With blank key/model and Temporal disabled, the synthetic sample returns a deterministic heuristic report. This does not verify AI or Temporal.
 
-## Public GitHub bootstrap (owner machine)
-
-Install GitHub CLI (`gh`) and sign in with `gh auth login`. In THIS extracted folder on Windows PowerShell:
+Set your OWN private Jarvislabs key and exact account catalog model ID in ignored `.env.local`, then run:
 
 ```powershell
-.\scripts\bootstrap-public.ps1 -Owner Roojool -Repo LatencyLens -Teammates @('COLLABORATOR_2','COLLABORATOR_3','COLLABORATOR_4')
+npm run setup:check
+npm run setup:check -- --live-ai
 ```
 
-Replace collaborators with **real GitHub usernames** and ensure each accepts invitation. This creates `https://github.com/Roojool/LatencyLens` as a **public** repo, pushes the starter, enables squash/auto-merge, and attempts to protect main with mandatory `checks` CI. If GitHub API permissions or plan settings block protections, fix them in GitHub Settings BEFORE accepting PRs. **Do not consider auto-merge operational until the branch rule and CI have been verified.**
+The first command checks configuration without network requests. The second makes one small real provider completion; it may consume credits. Never commit keys, share them in chat, or use `NEXT_PUBLIC_` for credentials.
 
-For safety, `.github/workflows/auto-merge.yml` only queues non-draft same-repo `feat/*` PRs authored by trusted collaborators and excludes security/dependency/contract files; protected main waits for green CI. No auto-approval bypass.
+## Agent handoff
 
-## Team handoff
+- Roojool: [takeover prompt](prompts/00-CODEX-TAKEOVER.md).
+- PR3MM: [complete copy-paste prompt](prompts/02-measurements.md); verify setup first, then wait for lead confirmation that both reports pass.
+- Use role branches and small PRs; run tests/typecheck/build and require green `checks`. No pushes to main or protection bypass.
+- Configured Luna workers are optional lead tools. Isolate concurrent writes; preserve teammates' work.
 
-1. Each person clones the public repo, runs `npm install`, and reads `AGENTS.md`.
-2. Lead opens `prompts/01-coordinator-ui.md` with agent; teammate 2 uses `02-measurements.md`; teammate 3 `03-temporal.md`; teammate 4 `04-gemma-jarvis.md`.
-3. Create own `feat/role-task` branches. Commit, push, open PR. The bot queues eligible PRs for green-check auto-merge; a separate workflow attempts clean branch refreshes after merges (never force-pushes).
-4. `docs/TASKS.md` is the sprint board; `docs/CONTRACTS.md` freezes integration types.
+## Runtime and measurement limits
 
-## Actual sponsor integration
+[DEPLOY.md](docs/DEPLOY.md) covers local Temporal server/worker and Gemma. Keep `TEMPORAL_ENABLED=false` until a completed real workflow is verified. Kepler is a separate development/SRE IDE.
 
-- Kepler: AI infrastructure IDE for diagnosing local dev/Temporal issues. It is NOT embedded as a sensor.
-- Jarvislabs: credentials and exact model ID go only in server env; uses `https://models.jarvislabs.net/v1` through OpenAI SDK.
-- Temporal: run local Temporal server (`temporal server start-dev`), then `npm run worker`, set `TEMPORAL_ENABLED=true`, restart Next. See `docs/DEPLOY.md`.
+The local probe is a bounded HTTPS timing demonstration, not ICMP or a certified bufferbloat grade. It still needs the planned endpoint/response-size hardening; do not use it for arbitrary targets. After that work, use `npm run --silent probe > probe-output.json` and import JSON. Never include private network identifiers in commits or AI prompts.
 
-## Local limited timing probe
+Next.js + React + TypeScript + Zod + Temporal + OpenAI-compatible Jarvislabs API. Local demo first; a hosted frontend alone cannot reach a laptop-only worker. MIT license.
 
-```powershell
-npm run probe > probe-output.json
-```
-
-Import the JSON from the dashboard. HTTPS timing under bounded background downloading is a rough proxy, **not formal ICMP RTT nor proof of bufferbloat**. Only measure networks you own or are authorized to assess. Defaults are limited to two 3-MB downloads, small timing batches and short request timeouts.
-
-## Project intent
-
-An accessible way for developers and everyday users to understand loaded-latency inflation, jitter, and possible network queueing issues. The numerical score is a documented heuristic, not a certified performance grade. The default trace is synthetic and explicitly labeled.
-
-## Stack
-
-Next.js + React + TypeScript + Zod, Node HTTPS probe, Temporal TypeScript SDK (optional runtime), Jarvislabs Gemma 4 via OpenAI-compatible API. MIT license.
-
-See `docs/UI-DESIGN.md`, `docs/ARCHITECTURE.md`, `docs/DEPLOY.md`, `docs/TASKS.md`, `docs/CONTRACTS.md`.
+[Architecture](docs/ARCHITECTURE.md) · [Contracts](docs/CONTRACTS.md) · [UI reference](docs/UI-DESIGN.md) · [Build plan](HACKDAY_PLAN.md)

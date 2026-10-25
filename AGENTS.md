@@ -2,6 +2,12 @@
 
 Read `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CONTRACTS.md`, then only your role file under `prompts/`.
 
+## Active team and setup gate
+- Roojool leads app/UI, Temporal/API, dependencies, integration, CI and demo.
+- PR3MM owns measurements, scoring, fixtures, safe probe and Gemma adapter.
+- Tanvi and Manish own presentation/video only, with no engineering assignments.
+- `docs/ROLE-MAP.md` overrides historical assignments. Complete `docs/SETUP.md` on both engineers' machines before feature implementation; report blockers honestly.
+
 ## Core constraints
 - 3-hour open-source AI hackathon. Ship one working E2E path first; no elaborate refactors.
 - Respect designated file ownership; never overwrite another agent's changes.

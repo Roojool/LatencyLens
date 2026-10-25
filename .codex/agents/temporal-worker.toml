@@ -4,6 +4,7 @@ model = "gpt-6-luna"
 model_reasoning_effort = "high"
 developer_instructions = """
 Read AGENTS.md, docs/ROLE-MAP.md and docs/CONTRACTS.md.
+Feature work starts after lead confirms both engineers passed docs/SETUP.md. Tanvi and Manish handle presentation/video only.
 Only change src/temporal/** and src/app/api/diagnose/route.ts. Do not edit src/lib/ai.ts, scoring.ts, any UI component, dependencies or contracts.
 Build one genuine bounded Temporal workflow with truthful ID/retry/fallback. Run relevant checks. Coordinate branch/worktree before edits.
 """

@@ -1,20 +1,18 @@
-# Runbook / deployment
+# Local runbook
 
-## Fast local demo
-- `npm install`
-- `cp .env.example .env.local` (on Windows PowerShell: `Copy-Item .env.example .env.local`)
-- `npm run dev`
-- visit http://localhost:3000
-- click Run AI diagnosis: deterministic fallback works with no credentials.
+Complete [SETUP.md](SETUP.md) on both engineers' machines first. Use `npm ci`, preserve an existing ignored `.env.local`, and keep Temporal disabled during the initial heuristic smoke.
 
-## Gemma 4 through Jarvislabs
-Set `JARVISLABS_API_KEY` and EXACT `JARVISLABS_MODEL` from https://jarvislabs.ai/products/models in `.env.local`. Never use `NEXT_PUBLIC_` prefix. Restart the app. Model JSON is validated. API failure shows deterministic fallback and warning.
+## Direct diagnosis
+Run `npm run dev`, open `http://localhost:3000` and click **Run AI diagnosis**. With blank key/model and `TEMPORAL_ENABLED=false`, expect a synthetic heuristic report, `aiUsed=false`, `workflowMode=direct`, and null workflow ID.
 
-## Temporal
-Temporal CLI install docs https://docs.temporal.io/cli ; start server `temporal server start-dev` (uses port 7233, Web UI typically 8233). New terminal: `$env:TEMPORAL_ADDRESS='localhost:7233'; npm run worker` (workers read `.env` process vars; load env manually). In `.env.local`, set `TEMPORAL_ENABLED=true`, restart Next. The worker reads `.env.local` through dotenv; restart it if you change credentials.
+## Jarvislabs
+Each engineer privately configures their own key, exact available model ID and verified base URL in `.env.local`. Never use `NEXT_PUBLIC_`. Run `npm run setup:check` then `npm run setup:check -- --live-ai` to verify access; restart Next afterward. This smoke proves provider access; the app must still validate diagnostic JSON. Failure must remain a visible heuristic fallback.
 
-## Real bounded probe
-`npm run probe > probe-output.json` (run on user's own laptop with permission and good Internet). Import the output JSON via the dashboard. It performs 7 baseline HTTPS GETs and a bounded concurrent download probe of 2×3 MB, plus 8 loaded timing samples; it is only a coarse HTTPS timing demonstration, not a valid official bufferbloat grade.
+## Temporal — Roojool
+Use [official CLI installation instructions](https://docs.temporal.io/cli), then `temporal server start-dev` in one terminal and `npm run worker` in another. Worker reads `.env.local` through dotenv; restart it after env changes. Verify worker registration, enable `TEMPORAL_ENABLED=true`, restart Next, diagnose and match the returned ID to completed history in Temporal UI (normally local port 8233). Disable again if unhealthy. PR3MM does not need this stack locally.
 
-## Hosting decision
-For today: local Next + Temporal + Worker demo, screen share or tunnel if available. Static Vercel deployment of frontend alone will NOT make a local Temporal Worker reachable or expose local ping capabilities. Post-hackathon: use a persistent Worker/Temporal server + authenticated agent and HTTPS backend before claiming hosted end-to-end availability.
+## Probe — after PR3MM hardening
+Do not run load traffic during setup. Use `npm run --silent probe > probe-output.json` so npm banners do not corrupt JSON; import it through the dashboard. Use only approved trusted endpoints and a network you are authorized to test. HTTPS timing includes DNS/TLS/server delay and may not saturate the link; never claim formal ICMP/bufferbloat results. Current starter needs planned endpoint/byte-limit hardening.
+
+## Hosting
+Local Next + Temporal + Worker first. A hosted frontend cannot reach a laptop-only worker. Persistent orchestration and a secured backend are future work.
