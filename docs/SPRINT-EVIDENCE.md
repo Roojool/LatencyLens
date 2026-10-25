@@ -26,7 +26,7 @@ The dashboard keeps the existing trace, JSON import, diagnosis, explicit source 
 
 Pushed branch `feat/measurements-ai-mvp`, commit `45838ea`, was reviewed in an isolated worktree. Lead opened draft [PR #4](https://github.com/Roojool/LatencyLens/pull/4). Its 16 tests, typecheck and production build pass locally. A real Jarvislabs call with the synthetic fixture returned validated narrative (`aiUsed=true`, model `gemma-4-31b-it`) in 7.789 seconds, with unchanged score `4` and delta `183.5`.
 
-The draft review requests excluding arbitrary `target`/`notes` strings from adapter input and a sentinel privacy test. Lead additionally redacts those fields in the shared Activity so both API execution modes protect imported free text; a captured provider-request test verifies it. The user supplied PR3MM's independent setup report at 11:13 UTC. Local lead verification does not claim to inspect PR3MM's laptop.
+PR3MM addressed privacy and completion-state review in `bc3956c`: target/notes are excluded and only `finish_reason=stop` is accepted. Its 18 tests pass. A real call through the stricter default adapter succeeded in 7.289 seconds. Lead also redacts free text in the shared Activity as defense in depth. PR #4 merged through green required CI at `08e7e75`; his later report confirms his gh authentication is resolved. The user supplied his independent setup report at 11:13 UTC. Local lead verification does not claim to inspect PR3MM's laptop.
 
 ## Repeatable local check
 
@@ -50,13 +50,55 @@ Use only states verified in the final evidence section; describe unavailable int
 - **2:15–2:40:** Show the recorded bounded-fallback result and preserved warning. Keep healthy demo services running. Show Kepler's actual read-only process/log inspection only if it has been verified; otherwise disclose the access blocker.
 - **2:40–3:00:** Summarize the working local path: import/sample → validated input → deterministic score → cautious diagnosis → traceable result. Do not imply a synthetic trace measures the venue network or that HTTPS timing is ICMP.
 
-## Verification still required
+## Final integration evidence
 
-- Bounded no-worker and unavailable-service fallback; generic safe errors and preserved warnings.
-- Review PR3MM's PR, including diagnostic JSON validation, finite timeout, unchanged deterministic arithmetic and exclusion of free-text/private target/notes from model input.
-- Actual validated Gemma diagnosis and a completed Temporal workflow matching the API's returned ID.
-- Sample/import → API → score → diagnosis → UI; desktop 1440×900 and mobile 390×844.
-- Final `npm run test`, `npm run typecheck`, `npm run build`; protected PR merge with green required checks.
+- Verification preparation merged in [PR #5](https://github.com/Roojool/LatencyLens/pull/5), `44d71f9`.
+- Bounded API/Temporal and privacy boundary merged in [PR #6](https://github.com/Roojool/LatencyLens/pull/6), `93dddc8`.
+- PR3MM's reviewed adapter merged in [PR #4](https://github.com/Roojool/LatencyLens/pull/4), `08e7e75`.
+- Responsive dashboard merged in [PR #7](https://github.com/Roojool/LatencyLens/pull/7), `7c39d53`. All required checks were green; no protection was bypassed.
+- Integrated tests: **24 pass**; typecheck and production build pass. No dependencies or frozen contracts changed.
+- Strict API smoke: `aiUsed=true`, `model=gemma-4-31b-it`, `workflowMode=temporal`, `score=4`, `deltaMs=183.5`, no warning, 16.715 seconds including first workflow execution. ID: `latencylens-9a599bdf-195e-4b8b-b939-8de06e30ab68`.
+- That ID has 11 actual history events, including `ACTIVITY_TASK_COMPLETED` and `WORKFLOW_EXECUTION_COMPLETED`. Sanitized event-only evidence: `output/playwright/temporal-history-redacted.json`.
+- Browser import of the synthetic fixture succeeded via keyboard Enter. Invalid JSON was rejected without replacing the current dataset. Import → API → deterministic score → validated Gemma → UI produced `latencylens-e78fdd93-7aec-4358-b59f-53fc2ff67c3e`.
+- Desktop **1440×900** and mobile **390×844** inspected; mobile document width equals viewport width (390), no horizontal overflow. All limitations remain visible. Both production browser sessions reported zero console errors.
+- An isolated app on port 3001, using only in-process overrides, displayed the actual direct fallback with both warnings, rule-based output and no workflow ID. The healthy Temporal service/worker stayed running.
+
+Local screenshots are ignored artifacts: `output/playwright/desktop-temporal-gemma.png`, `mobile-temporal-gemma.png`, `direct-fallback-desktop.png`. They contain synthetic inputs and real model/workflow results, with no credentials or private network identifiers.
+
+Kepler inspection remains **BLOCKED**: its process/sidecar are present, but the Computer Use native pipe is unavailable after retry/reset. Direct process checks and actual Temporal history are captured; they are not presented as Kepler agent evidence. No controlled worker outage or network probe was run. Four dependency advisories remain for coordinated work before public deployment.
+
+## Exact startup
+
+The configured ignored `.env.local` is preserved. These overrides affect only the terminal process. Reuse the currently running services; do not launch duplicate copies. For a fresh checkout, run `npm ci`, `npm run test`, `npm run typecheck`, `npm run build` before starting the app.
+
+Terminal A (only if the dev service is not already listening on 7233/8233):
+
+```powershell
+& (Join-Path $env:LOCALAPPDATA 'Programs\temporal\temporal.exe') server start-dev --ip 127.0.0.1
+```
+
+Terminal B, from the repository:
+
+```powershell
+$env:TEMPORAL_ADDRESS='127.0.0.1:7233'
+npm run worker
+```
+
+Terminal C, from the repository after `npm run build`:
+
+```powershell
+$env:TEMPORAL_ENABLED='true'
+$env:TEMPORAL_ADDRESS='127.0.0.1:7233'
+npm run start -- --hostname 127.0.0.1 --port 3000
+```
+
+Open `http://127.0.0.1:3000`; Temporal UI is `http://127.0.0.1:8233`. Run the strict check above. To create an importable synthetic fixture without running a probe:
+
+```powershell
+node --import tsx -e "const fs=require('node:fs');fs.mkdirSync('output',{recursive:true});fs.writeFileSync('output/sample-import.json',JSON.stringify(require('./src/lib/sample.ts').sampleMeasurement))"
+```
+
+Use `output/sample-import.json` with **Import JSON**. Keep the Temporal dev service running: its in-memory history disappears when restarted.
 
 ## Bounded execution verification
 
@@ -75,4 +117,4 @@ Read-only reviewer found no P0/P1 blocker. These are real execution/fallback che
 
 Open `http://localhost:3000`, observe the synthetic label, then select **Run AI diagnosis**. The original configured Next process returns a rule-based report with the metrics above. Browser console only reports the absent favicon (404). The original Import control is not keyboard-focusable; dashboard work must correct it.
 
-Local baseline screenshot: `output/playwright/baseline-desktop.png` (ignored, no secrets). Final evidence and demo commands will be recorded after integration.
+Local baseline screenshot: `output/playwright/baseline-desktop.png` (ignored, no secrets). This section describes the original screen; final evidence and commands are above.
