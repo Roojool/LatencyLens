@@ -27,3 +27,42 @@ export function scoreMeasurement(m: NetworkMeasurement): Diagnosis {
     ]
   };
 }
+
+/** Rounds to one decimal so comparisons never surface float noise. */
+const round1 = (n: number) => Math.round(n * 10) / 10;
+
+export type ComparisonDirection = 'improved' | 'regressed' | 'unchanged';
+export type DiagnosisComparison = {
+  direction: ComparisonDirection;
+  scoreDelta: number; deltaMsDelta: number; ratioDelta: number;
+  severityBefore: Severity; severityAfter: Severity; severityChanged: boolean;
+  evidence: string[]; limitations: string[];
+};
+
+/**
+ * Compares two deterministic diagnoses. Pure: it reads the rule engine's output
+ * and never recomputes or alters score/severity/deltaMs/ratio. Direction follows
+ * deltaMs, the product's core measure, with score as the tiebreaker.
+ */
+export function compareDiagnoses(before: Diagnosis, after: Diagnosis): DiagnosisComparison {
+  const deltaMsDelta = round1(after.deltaMs - before.deltaMs);
+  const scoreDelta = round1(after.score - before.score);
+  const ratioDelta = round1(after.ratio - before.ratio);
+  const direction: ComparisonDirection =
+    deltaMsDelta < 0 ? 'improved' : deltaMsDelta > 0 ? 'regressed'
+    : scoreDelta > 0 ? 'improved' : scoreDelta < 0 ? 'regressed' : 'unchanged';
+  return {
+    direction, scoreDelta, deltaMsDelta, ratioDelta,
+    severityBefore: before.severity, severityAfter: after.severity,
+    severityChanged: before.severity !== after.severity,
+    evidence: [
+      `Added latency: ${round1(before.deltaMs)} ms to ${round1(after.deltaMs)} ms (${deltaMsDelta >= 0 ? '+' : ''}${deltaMsDelta} ms)`,
+      `Heuristic score: ${before.score} to ${after.score} (${scoreDelta >= 0 ? '+' : ''}${scoreDelta})`,
+      `Severity: ${before.severity} to ${after.severity}`,
+    ],
+    limitations: [
+      'A before/after comparison is not a controlled experiment; other conditions may have changed between the two captures.',
+      'Both sides must come from the same measurement source to be comparable.',
+    ],
+  };
+}
