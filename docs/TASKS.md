@@ -1,30 +1,30 @@
-# LatencyLens sprint board — ACTIVE / reassigned
+# LatencyLens sprint board — setup first
 
-**Active owner map:** `docs/ROLE-MAP.md`. **Codex takeover:** `prompts/00-CODEX-TAKEOVER.md`. Old W3 Temporal assignment is retired; Roojool owns Temporal.
+Ownership: [ROLE-MAP.md](ROLE-MAP.md). Do not start feature implementation until both engineers return their setup reports.
 
 | Priority | Owner | Task | Acceptance |
 |---|---|---|---|
-| P0 | Roojool + Codex | Keep app running, bootstrap shadcn/ui in existing Next.js app (do not recreate app), Temporal server + Worker + diagnosis route, Kepler runbook, integrate all PRs | local demo, real workflow ID and protected main |
-| P0 | PR3MM | Fix/test measurement scoring, safe bounded probe, healthy-vs-loaded fixtures, own Gemma analysis implementation | defensible metrics and model result never fabricated |
-| P0 | Tanvi | shadcn dashboard presentational components only, no API/state/dependency work | screenshot + responsive KPI/sidebar/chart/report shell; PR isolated to `src/components/dashboard/**` |
-| P0 | Manish | Confirm Jarvislabs exact model/base URL through private account; one live smoke test locally; document sanitized findings | small doc/mock test PR; no secrets; no runtime edits |
-| P1 | Roojool + Codex | Wire Tanvi's components into existing `src/app/page.tsx`, true integration statuses, Temporal retry and Kepler recovery demo | repeatable actual end-to-end flow |
-| P1 | PR3MM | Before/after comparison and accuracy tests | labeled synthetic vs actual measurement |
-| P1 | Tanvi | polish only after P0 merged | accessible desktop/mobile screenshot |
-| P1 | Manish | verify AI fallback and JSON validation; review evidence | clear `aiUsed` truthfulness |
+| P0 first | Roojool + PR3MM, independently | Complete `docs/SETUP.md` | GitHub push access, dependencies/checks, heuristic API smoke, real Jarvislabs smoke, agent working; sanitized reports from BOTH machines |
+| P0 first | Roojool | Verify Temporal CLI/server/worker and Kepler access | Actual workflow ID and completed history before enabling Temporal; real Kepler access or explicit blocker |
+| P0 before deployment | Roojool + PR3MM | Review dependency advisories | `npm audit` reports 4 findings (3 high, 1 moderate); coordinate Zod/OpenAI/Next/PostCSS upgrades and contract compatibility; no blind force fix |
+| P0 next | PR3MM | Scoring/fixtures and safe bounded probe | Healthy/loaded synthetic scenarios, deterministic boundary tests; no untrusted target fetching or fabricated readings |
+| P0 next | PR3MM | Harden main Gemma adapter | Finite timeout, validated JSON, truthful `aiUsed`, unchanged arithmetic, safe fallback, no private data sent to model |
+| P0 next | Roojool | Diagnosis API + Temporal integration | Bounded workflow/retries, actual ID on success, clear fallback on service/worker failure |
+| P0 next | Roojool | shadcn dashboard + all UI integration | Existing import/diagnose flow works; provenance/missing values honest; desktop/mobile evidence |
+| P0 last | Roojool + PR3MM | Merge and verify complete demonstration | Green tests/typecheck/build, sample/import → diagnosis → real model/workflow or visible fallback |
+| P1 | Roojool | Kepler operations evidence and recovery | Safe, repeatable demonstration after healthy E2E; no network configuration changes |
+| P1 | PR3MM | Before/after comparison fixtures | Only after P0 integrated; labeled provenance and repeatable results |
 
-### Parallelism
-1. Roojool/Codex work on `src/temporal/**`, API, shadcn installation/dependencies and integration. W1 owns any config files changed by shadcn CLI. Separate Codex Luna subagents by non-overlapping paths or READ-ONLY scans.
-2. PR3MM works on probe/scoring/`src/lib/ai.ts`. Coordinate main AI code ownership. W4 only verifies.
-3. Tanvi adds separate `src/components/dashboard/**`. W1 integrates UI AFTER Tanvi's PR, unless they agree on stable component exports.
-4. Manish submits redacted Jarvislabs smoke notes and one mock/fixture test without printing or committing keys.
+Tanvi and Manish handle presentation/video outside this engineering board.
 
-### Guardrails
-- `src/lib/contracts.ts` frozen. Don't change without coordinator approval.
-- PRs green on `npm run test`, `npm run typecheck`, `npm run build`. No bypassing required check `checks`.
-- Never misrepresent HTTPS timings as ICMP ping or formal bufferbloat measurement.
-- Stop feature additions once integration/demo is at risk. Prefer working fallback to broken fancy UI.
-- No native .exe, accounts, auth, or DB for today's demo.
+## Order and coordination
+1. Setup reports can be submitted in parallel. Missing credentials/credits/model access are blockers, not completed integrations. The heuristic starter remains available for setup smoke testing.
+2. Once both machines pass, implement P0 slices concurrently against the existing frozen contract. Agree on exports before changing interfaces.
+3. Run `npm run test`, `npm run typecheck`, `npm run build`; open PR and relay URL, test evidence and integration notes. Never push to main or bypass protection.
+4. Roojool reviews/merges only after required `checks`; rerun E2E after each merge. Stop optional work when the demo becomes fragile.
 
-### Lead every 10–15 minutes
-`gh pr list --repo Roojool/LatencyLens`; review CI, merge conflicts and branch status; test local E2E after each merge; keep judge demo reproducible.
+## Initial audit — 2026-10-25
+- Public repository accessible; Roojool has admin and PR3MM has write permission.
+- Main requires `checks`, strict up-to-date checks and administrator enforcement. No open PRs at takeover audit.
+- Roojool: Node/npm/GitHub/Codex available; `.env.local` absent and Temporal CLI absent. Jarvislabs setup unverified on both machines (confirmed by Roojool).
+- PR3MM's local toolchain, agent and API access remain unverified until his setup report arrives.
