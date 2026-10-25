@@ -24,6 +24,8 @@ export const LIMITS = Object.freeze({
   loadedRequests: 8,
   concurrentLoads: 2,
   maxLoadBytes: 3_000_000,
+  maxTotalLoadBytes: 12_000_000,
+  maxLoadRequestsPerWorker: 8,
   maxResponseBytes: 5_000_000,
   sampleTimeoutMs: 10_000,
   loadTimeoutMs: 12_000,
@@ -125,6 +127,26 @@ async function sampleOnce(target) {
 }
 
 /**
+ * Keeps load running for as long as the loaded phase lasts. A single bounded
+ * download finishes in well under a second on a fast link, so firing once would
+ * leave most loaded samples measuring an idle connection. Repeats until the
+ * caller says stop, its own byte budget is spent, or its request cap is hit, and
+ * gives up immediately on the first failed attempt rather than hammering a
+ * failing endpoint. Returns the bytes this worker actually transferred.
+ */
+export async function sustainLoad(loadUrl, shouldContinue, fetchImpl = fetch) {
+  const budget = Math.floor(LIMITS.maxTotalLoadBytes / LIMITS.concurrentLoads);
+  let total = 0;
+  for (let request = 0; request < LIMITS.maxLoadRequestsPerWorker; request++) {
+    if (!shouldContinue() || total >= budget) break;
+    const bytes = await generateLoad(loadUrl, fetchImpl);
+    if (bytes === 0) break;
+    total += bytes;
+  }
+  return total;
+}
+
+/**
  * Runs one bounded load download and returns the number of bytes actually
  * transferred. Returns 0 for a non-2xx status, an empty body, a timeout or any
  * transport error, so a failed load can never be mistaken for generated load.
@@ -184,7 +206,10 @@ async function main() {
     throw new Error('Too few successful idle requests; check target connectivity');
   }
 
-  const active = Array.from({ length: LIMITS.concurrentLoads }, () => generateLoad(loadUrl));
+  // Load must persist for the whole loaded phase, not just its first moment.
+  let loadedPhaseActive = true;
+  const active = Array.from({ length: LIMITS.concurrentLoads },
+    () => sustainLoad(loadUrl, () => loadedPhaseActive));
 
   const loaded = [];
   for (let i = 0; i < LIMITS.loadedRequests; i++) {
@@ -192,6 +217,7 @@ async function main() {
     if (value !== null) loaded.push(value);
     await delay(LIMITS.loadedDelayMs);
   }
+  loadedPhaseActive = false;
   const loadBytes = (await Promise.all(active)).reduce((total, bytes) => total + bytes, 0);
   if (loaded.length < LIMITS.minSuccessfulSamples) {
     throw new Error('Too few successful loaded requests');
