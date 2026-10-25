@@ -41,7 +41,7 @@ export default function Page() {
         <Button variant="outline" disabled={busy} onClick={() => fileInput.current?.click()}><span aria-hidden="true">↑</span>{operation === 'import' ? 'Importing…' : 'Import JSON'}</Button>
         <Button disabled={busy} onClick={() => void diagnose()}><span aria-hidden="true">✦</span>{operation === 'diagnose' ? 'Analyzing…' : 'Run diagnosis'}</Button></div>
     </div>
-    {!synthetic && <div className="source-notice"><span className="source-symbol" aria-hidden="true">ⓘ</span><div><strong>{measurement.source === 'local-https-probe' ? 'Imported HTTPS estimate' : 'Imported browser estimate'}</strong><p>Approximate timing, not ICMP or a controlled link-capacity test.</p></div><span className="dataset-id">{measurement.id}</span></div>}
+    <div className="source-notice"><span className="source-symbol" aria-hidden="true">ⓘ</span><div><strong>{synthetic ? 'Synthetic demonstration' : measurement.source === 'local-https-probe' ? 'Imported HTTPS estimate' : 'Imported browser estimate'}</strong><p>{synthetic ? 'These values are simulated, not readings from your connection.' : 'Approximate timing, not ICMP or a controlled link-capacity test.'}</p></div><span className="dataset-id">{measurement.id}</span></div>
     {error && <p role="alert" className="error">{error}</p>}
     <p role="status" className="sr-only">{busy ? `${operation === 'import' ? 'Importing measurement' : 'Analyzing measurement; fallback may take up to 75 seconds'}.` : result ? 'Diagnosis complete. Report and execution status updated.' : 'Measurement ready.'}</p>
     <MetricCards measurement={measurement} diagnosis={result?.diagnosis}/><LatencyPanel measurement={measurement}/><DiagnosisPanels result={result} busy={operation === 'diagnose'}/>

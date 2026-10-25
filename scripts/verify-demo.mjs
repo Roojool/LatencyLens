@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { sampleMeasurement } from '../src/lib/sample.ts';
 import { scoreMeasurement } from '../src/lib/scoring.ts';
 
-const endpoint = 'http://127.0.0.1:3000/api/diagnose';
+const endpoint = `http://127.0.0.1:${process.argv.includes('--docker') ? 3002 : 3000}/api/diagnose`;
 const started = Date.now();
 const invalid = await fetch(endpoint, {
   method: 'POST', headers: { 'content-type': 'application/json' },

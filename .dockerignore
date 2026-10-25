@@ -1,0 +1,12 @@
+**
+!Dockerfile
+!package.json
+!package-lock.json
+!tsconfig.json
+!next-env.d.ts
+!src/
+!src/**
+!tests/
+!tests/**
+!scripts/
+!scripts/check-setup.mjs
