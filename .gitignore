@@ -8,3 +8,5 @@ out/
 *.tsbuildinfo
 .DS_Store
 probe-output.json
+.playwright-cli/
+output/
