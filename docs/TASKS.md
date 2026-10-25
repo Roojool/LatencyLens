@@ -2,6 +2,8 @@
 
 Ownership: [ROLE-MAP.md](ROLE-MAP.md). Do not start feature implementation until both engineers return their setup reports.
 
+Current verification evidence and first build jobs: [TOOL-STATUS.md](TOOL-STATUS.md). Filled env files alone do not complete setup; PR3MM's independent report remains required.
+
 | Priority | Owner | Task | Acceptance |
 |---|---|---|---|
 | P0 first | Roojool + PR3MM, independently | Complete `docs/SETUP.md` | GitHub push access, dependencies/checks, heuristic API smoke, real Jarvislabs smoke, agent working; sanitized reports from BOTH machines |
@@ -24,6 +26,7 @@ Tanvi and Manish handle presentation/video outside this engineering board.
 4. Roojool reviews/merges only after required `checks`; rerun E2E after each merge. Stop optional work when the demo becomes fragile.
 
 ## Initial audit — 2026-10-25
+Historical first-takeover snapshot below; see `TOOL-STATUS.md` for subsequent live checks.
 - Public repository accessible; Roojool has admin and PR3MM has write permission.
 - Main requires `checks`, strict up-to-date checks and administrator enforcement. No open PRs at takeover audit.
 - Roojool: Node/npm/GitHub/Codex available; `.env.local` absent and Temporal CLI absent. Jarvislabs setup unverified on both machines (confirmed by Roojool).
