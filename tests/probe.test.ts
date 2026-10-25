@@ -83,7 +83,7 @@ test('median averages the two middle values for even-length samples', () => {
 });
 
 test('buildMeasurement labels provenance honestly and never claims ICMP', () => {
-  const m = probe.buildMeasurement({ target: probe.LATENCY_TARGETS[0], idle: [20, 22], loaded: [60, 80] });
+  const m = probe.buildMeasurement({ target: probe.LATENCY_TARGETS[0], idle: [20, 22], loaded: [60, 80], loadBytes: 1000 });
   assert.equal(m.source, 'local-https-probe');
   assert.equal(m.idleMedianMs, 21);
   assert.equal(m.loadedMedianMs, 70);
@@ -92,4 +92,65 @@ test('buildMeasurement labels provenance honestly and never claims ICMP', () => 
   assert.match(m.notes, /not equate with ICMP/i);
   assert.equal(m.points.filter((p: any) => p.phase === 'idle').length, 2);
   assert.equal(m.points.filter((p: any) => p.phase === 'loaded').length, 2);
+});
+
+
+// --- Lead review follow-up (PR #8): a failed load must never read as generated load ---
+
+/** Builds a fake Response whose body yields `chunks`. */
+function fakeResponse({ ok = true, status = 200, chunks = [] }: any) {
+  let i = 0;
+  return {
+    ok, status,
+    body: {
+      getReader: () => ({
+        read: async () => (i < chunks.length ? { done: false, value: chunks[i++] } : { done: true }),
+        cancel: async () => undefined,
+      }),
+      cancel: async () => undefined,
+    },
+  };
+}
+
+test('generateLoad reports bytes only for a 2xx response with a body', async () => {
+  const bytes = await probe.generateLoad('https://speed.cloudflare.com/__down',
+    async () => fakeResponse({ chunks: [new Uint8Array(500), new Uint8Array(300)] }));
+  assert.equal(bytes, 800);
+});
+
+test('generateLoad returns 0 for non-2xx, empty, missing and failing responses', async () => {
+  const url = 'https://speed.cloudflare.com/__down';
+  const cases: [string, any][] = [
+    ['403', async () => fakeResponse({ ok: false, status: 403, chunks: [new Uint8Array(900)] })],
+    ['404', async () => fakeResponse({ ok: false, status: 404 })],
+    ['500', async () => fakeResponse({ ok: false, status: 500 })],
+    ['empty 200 body', async () => fakeResponse({ chunks: [] })],
+    ['null body', async () => ({ ok: true, status: 200, body: null })],
+    ['no response', async () => undefined],
+    ['transport error', async () => { throw new Error('ECONNRESET'); }],
+    ['timeout', async () => { throw Object.assign(new Error('timeout'), { name: 'TimeoutError' }); }],
+  ];
+  for (const [label, impl] of cases) {
+    assert.equal(await probe.generateLoad(url, impl), 0, `expected 0 bytes for ${label}`);
+  }
+});
+
+test('a non-2xx load never contributes bytes even with a large body', async () => {
+  const bytes = await probe.generateLoad('https://speed.cloudflare.com/__down',
+    async () => fakeResponse({ ok: false, status: 403, chunks: [new Uint8Array(3_000_000)] }));
+  assert.equal(bytes, 0, 'a 403 body must not count as generated load');
+});
+
+test('notes refuse to claim load when none was transferred', () => {
+  const withoutLoad = probe.buildMeasurement({ target: probe.LATENCY_TARGETS[0], idle: [20, 22], loaded: [60, 80] });
+  assert.match(withoutLoad.notes, /No concurrent load was generated/);
+  assert.match(withoutLoad.notes, /NOT a load measurement/);
+  assert.doesNotMatch(withoutLoad.notes, /bytes of concurrent bounded download/);
+
+  const withLoad = probe.buildMeasurement({ target: probe.LATENCY_TARGETS[0], idle: [20, 22], loaded: [60, 80], loadBytes: 2_500_000 });
+  assert.match(withLoad.notes, /2500000 bytes of concurrent bounded download/);
+  assert.doesNotMatch(withLoad.notes, /No concurrent load/);
+  for (const notes of [withoutLoad.notes, withLoad.notes]) {
+    assert.match(notes, /not equate with ICMP/i);
+  }
 });

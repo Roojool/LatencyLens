@@ -124,7 +124,29 @@ async function sampleOnce(target) {
   }
 }
 
-export function buildMeasurement({ target, idle, loaded }) {
+/**
+ * Runs one bounded load download and returns the number of bytes actually
+ * transferred. Returns 0 for a non-2xx status, an empty body, a timeout or any
+ * transport error, so a failed load can never be mistaken for generated load.
+ * `fetchImpl` is injected by tests; nothing here reaches the network under test.
+ */
+export async function generateLoad(loadUrl, fetchImpl = fetch) {
+  try {
+    const response = await fetchImpl(loadUrl, {
+      cache: 'no-store', redirect: 'error',
+      signal: AbortSignal.timeout(LIMITS.loadTimeoutMs),
+    });
+    if (!response || !response.ok) {
+      await response?.body?.cancel?.().catch(() => undefined);
+      return 0;
+    }
+    return await readBounded(response, LIMITS.maxLoadBytes);
+  } catch {
+    return 0;
+  }
+}
+
+export function buildMeasurement({ target, idle, loaded, loadBytes = 0 }) {
   const points = [
     ...idle.map((latencyMs, at) => ({ at, latencyMs, phase: 'idle' })),
     ...loaded.map((latencyMs, i) => ({ at: i + idle.length, latencyMs, phase: 'loaded' })),
@@ -140,7 +162,9 @@ export function buildMeasurement({ target, idle, loaded }) {
     jitterMs: median(jitters),
     packetLossPct: null, downloadMbps: null, uploadMbps: null,
     points,
-    notes: 'HTTPS request timing includes DNS/TLS/server delay; concurrent bounded downloads generate some load, but may not saturate the link. Do not equate with ICMP or formal bufferbloat tests.',
+    notes: loadBytes > 0
+      ? `HTTPS request timing includes DNS/TLS/server delay; ${loadBytes} bytes of concurrent bounded download generated load, which may not saturate the link. Do not equate with ICMP or formal bufferbloat tests.`
+      : 'HTTPS request timing includes DNS/TLS/server delay. No concurrent load was generated, so the loaded phase is NOT a load measurement. Do not equate with ICMP or formal bufferbloat tests.',
   };
 }
 
@@ -160,15 +184,7 @@ async function main() {
     throw new Error('Too few successful idle requests; check target connectivity');
   }
 
-  const active = Array.from({ length: LIMITS.concurrentLoads }, async () => {
-    try {
-      const response = await fetch(loadUrl, {
-        cache: 'no-store', redirect: 'error',
-        signal: AbortSignal.timeout(LIMITS.loadTimeoutMs),
-      });
-      await readBounded(response, LIMITS.maxLoadBytes);
-    } catch { /* Load generation is best effort; latency samples are the measurement. */ }
-  });
+  const active = Array.from({ length: LIMITS.concurrentLoads }, () => generateLoad(loadUrl));
 
   const loaded = [];
   for (let i = 0; i < LIMITS.loadedRequests; i++) {
@@ -176,12 +192,17 @@ async function main() {
     if (value !== null) loaded.push(value);
     await delay(LIMITS.loadedDelayMs);
   }
-  await Promise.allSettled(active);
+  const loadBytes = (await Promise.all(active)).reduce((total, bytes) => total + bytes, 0);
   if (loaded.length < LIMITS.minSuccessfulSamples) {
     throw new Error('Too few successful loaded requests');
   }
+  // Without a successful load there is no loaded phase to report: the samples would
+  // be idle samples wearing a 'loaded' label.
+  if (loadBytes <= 0) {
+    throw new Error('No load response succeeded; refusing to report a loaded phase that measured no load');
+  }
 
-  process.stdout.write(JSON.stringify(buildMeasurement({ target, idle, loaded }), null, 2) + '\n');
+  process.stdout.write(JSON.stringify(buildMeasurement({ target, idle, loaded, loadBytes }), null, 2) + '\n');
 }
 
 const invokedDirectly = Boolean(process.argv[1]) && import.meta.url === pathToFileURL(process.argv[1]).href;
