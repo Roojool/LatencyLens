@@ -35,3 +35,29 @@ export const moderateSampleMeasurement: NetworkMeasurement = {
   points: [...moderateIdle.map((latencyMs,at)=>({at,latencyMs,phase:'idle' as const})),...moderateLoaded.map((latencyMs,i)=>({at:i+moderateIdle.length,latencyMs,phase:'loaded' as const}))],
   notes: 'Synthetic values chosen to demonstrate partial latency inflation under load. NOT actual measurements.'
 };
+
+// Before/after comparison pair. Same synthetic target and source, so the two sides
+// are comparable. NOT measurements, and not evidence that any change caused the shift.
+const beforeIdle = [27,26,28,27,26,27,28,27,26,27,28,27];
+const beforeLoaded = [52,96,188,274,330,342,356,310,282,241,196,133,88,61];
+const afterIdle = [26,27,26,28,27,26,27,28,26,27,26,27];
+const afterLoaded = [31,34,38,41,44,43,40,37,35,33,31,30,29,31];
+const comparisonTarget = 'Synthetic queue-management before/after demonstration';
+export const comparisonBeforeMeasurement: NetworkMeasurement = {
+  ...sampleMeasurement,
+  id: 'sample-comparison-before-01', createdAt: '2026-10-25T09:00:00.000Z',
+  target: comparisonTarget,
+  idleMedianMs: median(beforeIdle), loadedMedianMs: median(beforeLoaded),
+  jitterMs: 38, downloadMbps: 47.9,
+  points: [...beforeIdle.map((latencyMs,at)=>({at,latencyMs,phase:'idle' as const})),...beforeLoaded.map((latencyMs,i)=>({at:i+beforeIdle.length,latencyMs,phase:'loaded' as const}))],
+  notes: 'Synthetic BEFORE capture for the comparison demonstration. NOT actual measurements.'
+};
+export const comparisonAfterMeasurement: NetworkMeasurement = {
+  ...sampleMeasurement,
+  id: 'sample-comparison-after-01', createdAt: '2026-10-25T10:30:00.000Z',
+  target: comparisonTarget,
+  idleMedianMs: median(afterIdle), loadedMedianMs: median(afterLoaded),
+  jitterMs: 4, downloadMbps: 46.8,
+  points: [...afterIdle.map((latencyMs,at)=>({at,latencyMs,phase:'idle' as const})),...afterLoaded.map((latencyMs,i)=>({at:i+afterIdle.length,latencyMs,phase:'loaded' as const}))],
+  notes: 'Synthetic AFTER capture for the comparison demonstration. NOT actual measurements, and not proof that any change caused the difference.'
+};
