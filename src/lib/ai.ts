@@ -69,7 +69,10 @@ export function applyAiNarrative(
   finishReason: string | null | undefined,
   model: string,
 ): Diagnosis {
-  if (finishReason === 'length') return base;
+  // Accept a narrative only from a completion that actually finished. Truncation
+  // ('length'), provider filtering ('content_filter'), tool stops and absent or
+  // unknown reasons all degrade to the deterministic result instead.
+  if (finishReason !== 'stop') return base;
   const json = extractJsonObject(raw ?? '');
   if (!json) return base;
   let candidate: unknown;
@@ -88,11 +91,16 @@ export function applyAiNarrative(
   };
 }
 
-/** Only non-identifying measurement fields are sent to the provider. */
+/**
+ * Only enumerated or numeric measurement fields reach the provider. `target` and
+ * `notes` are free-form strings that an imported measurement can fill with private
+ * hostnames, IP addresses or credentials, so they are never sent. Provenance still
+ * travels through the `source` enum and the deterministic `limitations`.
+ */
 function buildUserPayload(measurement: NetworkMeasurement, base: Diagnosis): string {
   return JSON.stringify({
     measurement: {
-      source: measurement.source, target: measurement.target, notes: measurement.notes,
+      source: measurement.source,
       packetLossPct: measurement.packetLossPct,
       downloadMbps: measurement.downloadMbps, uploadMbps: measurement.uploadMbps,
     },

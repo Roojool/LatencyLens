@@ -153,3 +153,52 @@ test('applyAiNarrative is pure and never throws on hostile input', () => {
     assert.equal(d.score, base.score);
   }
 });
+
+// --- Lead review follow-ups (PR #4) ---
+
+test('free-form target and notes never reach the provider payload', async () => {
+  const sentinels = {
+    target: 'SENTINEL-TARGET router.lan 192.168.1.77',
+    notes: 'SENTINEL-NOTES password=hunter2 token=ghp_fake user@example.com',
+  };
+  const hostile = { ...sampleMeasurement, ...sentinels };
+  const seen: { system: string; user: string; apiKey: string }[] = [];
+  const prevKey = process.env.JARVISLABS_API_KEY;
+  const prevModel = process.env.JARVISLABS_MODEL;
+  process.env.JARVISLABS_API_KEY = 'test-key-never-sent';
+  process.env.JARVISLABS_MODEL = MODEL;
+  try {
+    await analyzeWithGemma(hostile, async (input) => {
+      seen.push({ system: input.system, user: input.user, apiKey: input.apiKey });
+      return { content: JSON.stringify(validNarrative), finishReason: 'stop' };
+    });
+  } finally {
+    if (prevKey === undefined) delete process.env.JARVISLABS_API_KEY; else process.env.JARVISLABS_API_KEY = prevKey;
+    if (prevModel === undefined) delete process.env.JARVISLABS_MODEL; else process.env.JARVISLABS_MODEL = prevModel;
+  }
+  assert.equal(seen.length, 1, 'exactly one provider request');
+  const sent = seen[0].system + '\n' + seen[0].user;
+  for (const forbidden of [
+    'SENTINEL-TARGET', 'SENTINEL-NOTES', 'router.lan', '192.168.1.77',
+    'hunter2', 'ghp_fake', 'user@example.com', seen[0].apiKey,
+  ]) {
+    assert.doesNotMatch(sent, new RegExp(forbidden.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+      `provider payload must not contain ${forbidden}`);
+  }
+  // Provenance must still survive so the narrative stays honest about the source.
+  assert.match(seen[0].user, /"source":"sample"/);
+  assert.match(seen[0].user, /synthetic demonstration dataset/i);
+});
+
+test('narrative is accepted only from a finished completion', async () => {
+  const good = JSON.stringify(validNarrative);
+  const accepted = await withFakeProvider(async () => ({ content: good, finishReason: 'stop' }));
+  assert.equal(accepted.aiUsed, true, "'stop' is the only accepted reason");
+
+  for (const finishReason of ['length', 'content_filter', 'tool_calls', 'function_call', 'ERROR', '', null, undefined]) {
+    const d = await withFakeProvider(async () => ({ content: good, finishReason: finishReason as string | null }));
+    assert.equal(d.aiUsed, false, `expected fallback for finish_reason=${String(finishReason)}`);
+    assert.equal(d.model, null);
+    assertDeterministicUnchanged(d);
+  }
+});
