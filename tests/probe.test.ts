@@ -154,3 +154,47 @@ test('notes refuse to claim load when none was transferred', () => {
     assert.match(notes, /not equate with ICMP/i);
   }
 });
+
+
+// --- Self-review finding: load must persist for the whole loaded phase ---
+
+test('sustainLoad keeps downloading until the loaded phase ends', async () => {
+  let active = true;
+  let calls = 0;
+  const bytes = await probe.sustainLoad('https://speed.cloudflare.com/__down',
+    () => active,
+    async () => { if (++calls === 3) active = false; return fakeResponse({ chunks: [new Uint8Array(1000)] }); });
+  assert.equal(calls, 3, 'repeats while the phase is active, stops once it ends');
+  assert.equal(bytes, 3000);
+});
+
+test('sustainLoad does not start when the phase is already over', async () => {
+  let calls = 0;
+  const bytes = await probe.sustainLoad('https://speed.cloudflare.com/__down',
+    () => false,
+    async () => { calls++; return fakeResponse({ chunks: [new Uint8Array(1000)] }); });
+  assert.equal(calls, 0);
+  assert.equal(bytes, 0);
+});
+
+test('sustainLoad stops on the first failure instead of hammering the endpoint', async () => {
+  let calls = 0;
+  const bytes = await probe.sustainLoad('https://speed.cloudflare.com/__down',
+    () => true,
+    async () => { calls++; return fakeResponse({ ok: false, status: 503 }); });
+  assert.equal(calls, 1, 'one failed attempt is enough');
+  assert.equal(bytes, 0);
+});
+
+test('sustainLoad respects its byte budget and request cap', async () => {
+  const perWorkerBudget = Math.floor(probe.LIMITS.maxTotalLoadBytes / probe.LIMITS.concurrentLoads);
+  let calls = 0;
+  const bytes = await probe.sustainLoad('https://speed.cloudflare.com/__down',
+    () => true,
+    async () => { calls++; return fakeResponse({ chunks: [new Uint8Array(probe.LIMITS.maxLoadBytes)] }); });
+  assert.ok(calls <= probe.LIMITS.maxLoadRequestsPerWorker, `${calls} exceeds the request cap`);
+  assert.ok(bytes <= perWorkerBudget + probe.LIMITS.maxLoadBytes,
+    `${bytes} overshoots the per-worker budget by more than one request`);
+  // Whole-probe egress stays modest.
+  assert.ok(probe.LIMITS.maxTotalLoadBytes <= 12_000_000);
+});
