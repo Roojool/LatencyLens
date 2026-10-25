@@ -13,7 +13,7 @@ No private environment file is changed or committed. Measurements in this report
 - Existing loopback services: Next on 3000, Temporal on 7233, Temporal UI on 8233. The existing Next process serves a rule-based direct report for the synthetic sample (`score=4`, `deltaMs=183.5`, `aiUsed=false`, null workflow ID).
 - Temporal CLI confirms the prior setup workflow `latencylens-setup-a077408b-c255-4b8f-812f-70a4fd755f8a` remains `COMPLETED` with 11 history events. At 11:00 UTC the diagnosis task queue has zero pollers. A worker must be started for the integrated demo.
 - Kepler and its agent sidecar are running. Windows Computer Use cannot connect to its native pipe after retry/reset; actual Kepler workspace/log inspection is unverified. Do not present the process check as a successful Kepler agent session.
-- PR3MM's initial independent PASS report has been requested; no open PR/report was available in this repository at preflight. Shared setup gate remains pending until that evidence arrives.
+- PR3MM's report was absent at preflight. The user supplied it at 11:13 UTC: clean sync, clean install, 16 tests/typecheck/build, real provider smoke, heuristic API and actual coding-agent smoke passed. Push access was demonstrated; his unauthenticated `gh` is handled by the lead's authenticated session. The shared setup gate is closed. Kepler inspection remains an explicitly recorded tool blocker.
 - Dependency audit still reports 4 findings (3 high, 1 moderate); fixes proposed by npm involve major Next/Zod changes. No forced upgrades during this local sprint.
 
 ## Scope and ownership
@@ -26,7 +26,7 @@ The dashboard keeps the existing trace, JSON import, diagnosis, explicit source 
 
 Pushed branch `feat/measurements-ai-mvp`, commit `45838ea`, was reviewed in an isolated worktree. Lead opened draft [PR #4](https://github.com/Roojool/LatencyLens/pull/4). Its 16 tests, typecheck and production build pass locally. A real Jarvislabs call with the synthetic fixture returned validated narrative (`aiUsed=true`, model `gemma-4-31b-it`) in 7.789 seconds, with unchanged score `4` and delta `183.5`.
 
-Merge is blocked on excluding arbitrary `target`/`notes` strings from provider input; the draft review requests a sentinel privacy test. PR3MM's independent initial setup attestation was not present in the pushed branch and has been requested separately. This local lead verification does not claim to inspect PR3MM's laptop.
+The draft review requests excluding arbitrary `target`/`notes` strings from adapter input and a sentinel privacy test. Lead additionally redacts those fields in the shared Activity so both API execution modes protect imported free text; a captured provider-request test verifies it. The user supplied PR3MM's independent setup report at 11:13 UTC. Local lead verification does not claim to inspect PR3MM's laptop.
 
 ## Repeatable local check
 
@@ -57,6 +57,19 @@ Use only states verified in the final evidence section; describe unavailable int
 - Actual validated Gemma diagnosis and a completed Temporal workflow matching the API's returned ID.
 - Sample/import → API → score → diagnosis → UI; desktop 1440×900 and mobile 390×844.
 - Final `npm run test`, `npm run typecheck`, `npm run build`; protected PR merge with green required checks.
+
+## Bounded execution verification
+
+The lead-owned API/Activity integration passes 10 tests, typecheck and production build. Request input is capped at 128 KiB and five seconds. Workflow execution is capped at 40 seconds, RPC waiting at 43 seconds, connection at three seconds and direct diagnosis at 20 seconds; cleanup also has a finite bound. The UI budget must allow up to 72 seconds including input and cleanup.
+
+Actual process-only failure checks against the local code (private files unchanged):
+
+- Unreachable loopback service: `direct-fallback` in **3.031 seconds**.
+- Real running Temporal service with zero worker pollers: `direct-fallback` in **40.111 seconds**.
+- Both return null workflow ID, `aiUsed=false`, and retain both generic Temporal and AI warnings.
+- A stalled-body test returns HTTP 408 in 5.013 seconds even when stream cancellation never settles.
+
+Read-only reviewer found no P0/P1 blocker. These are real execution/fallback checks, not network readings.
 
 ## Baseline reproduction
 
