@@ -33,7 +33,7 @@ for (const [width, height] of [[360, 800], [390, 844], [768, 1024], [1024, 768],
     test('fits the experiment and an open comparison', async ({ page }) => {
       const start = page.getByRole('link', { name: 'Try the congestion experiment' });
       await expect(start).toBeInViewport({ ratio: 1 });
-      await expect(page.getByRole('heading', { name: 'Response time' })).toBeInViewport();
+      await expect(page.getByText('Under your load', { exact: true })).toBeInViewport();
       const activity = await page.getByRole('group', { name: 'Activity' }).boundingBox();
       const response = await page.getByRole('heading', { name: 'Response time' }).boundingBox();
       if (width < 720) {
@@ -139,6 +139,8 @@ for (const comparison of [false, true]) {
       await page.getByRole('slider').press('End');
       await page.getByRole('combobox', { name: 'Compare with' }).selectOption({ label: 'Downloading' });
     }
+    await expect(page.locator('.lane-label strong')).toHaveText(comparison ? ['15 ms', '215 ms'] : ['30 ms', '55 ms']);
+    await expect(page.locator('.verdict strong')).toHaveText(comparison ? ['+200 ms', 'Long queue'] : ['+25 ms', 'Queue building']);
     const drawn = await page.evaluateHandle(() => {
       const lines: string[] = [];
       const fillText = CanvasRenderingContext2D.prototype.fillText;
