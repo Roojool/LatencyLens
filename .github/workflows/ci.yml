@@ -16,8 +16,18 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            apps/embarko-challenge/package-lock.json
       - run: npm ci
       - run: npm run test
       - run: npm run typecheck
       - run: npm run build
+      - name: Check the Internet Congestion Lab
+        working-directory: apps/embarko-challenge
+        run: |
+          npm ci
+          npm test
+          npm run build
+          npx playwright install --with-deps chromium
+          npx playwright test --project=chromium
