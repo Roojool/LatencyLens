@@ -27,4 +27,4 @@ For manual verification, run `npm run preview -- --host 127.0.0.1 --port 4173`. 
 Local preview captures are under `output/playwright/`. The deployed screenshots and export use the `live-latencylens-` prefix.
 
 
-Both deployed PNG smoke tests passed on retry, covering single-activity and comparison exports. An earlier run timed out twice. The recovered Windows runner could not find the Chrome channel binary, so the local suite could not be repeated there.
+Both deployed PNG smoke tests passed on retry, covering single-activity and comparison exports. An earlier run timed out twice. The full local Chromium suite passed all 13 tests, including five viewport widths, keyboard controls, comparison, reset, PNG values, export recovery, reduced motion and axe checks. WebKit download failed on this workstation.
