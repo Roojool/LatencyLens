@@ -1,5 +1,9 @@
 # LatencyLens on camera
 
+The separate live-check explainer is rendered at `output/embarko/live-motion/latencylens-motion.mp4` and includes synthetic narration, animated illustrations and a selectable caption track. It introduces the live check, the timing spread, the retest and the AI handoff. The diagrams are illustrative. Use the shooting script below for the separate contest version that requires genuine deployment footage.
+
+To reproduce the explainer on Windows, install Pillow and [edge-tts](https://github.com/rany2/edge-tts) in a Python environment, put FFmpeg and ffprobe on PATH, and run `python scripts/render-latency-motion.py` from the repository root. The renderer writes the MP4 and an SRT file under `output/embarko/live-motion`.
+
 **82-second shooting script. Final recording pending.** The entrant’s own narration, genuine Embarko dashboard footage and a physical-phone take are still needed. Rujul is the proposed narrator. Have the actual entrant confirm their name and first-person lines before recording. Keep the cut private pending the organizer’s eligibility decision. [Unsent eligibility draft](EMBARKO-ELIGIBILITY.md)
 
 **The public URL is verified and the claim is complete.** Desktop and emulated-phone checks passed. The entrant confirmed the claim, the temporary banner disappeared, and unauthenticated status returned the documented 404. The existing 1080 × 1920 thumbnail is available as a cover. [Public lab](https://latencylens-congestion-lab.embarko.app) · [Deployment record](EMBARKO-DEPLOYMENT.md) · [Original thumbnail](../output/embarko/latencylens-thumbnail.png) · [Repository copy](assets/embarko-thumbnail.png)
