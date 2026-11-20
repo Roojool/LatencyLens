@@ -1,8 +1,8 @@
 # LatencyLens on camera
 
-The separate live-check explainer is rendered at `output/embarko/live-motion/latencylens-motion.mp4` and includes synthetic narration, animated illustrations and a selectable caption track. It introduces the live check, the timing spread, the retest and the AI handoff. The diagrams are illustrative. Use the shooting script below for the separate contest version that requires genuine deployment footage.
+The revised live-check explainer is rendered at `output/embarko/live-motion-v2/latencylens-motion.mp4`. It pairs synthetic narration and a selectable caption track with six animated scenes, including the request round trips, median and spread, a before-and-after comparison, and the AI handoff. The diagrams are illustrative. Use the shooting script below for the separate contest version that requires genuine deployment footage.
 
-To reproduce the explainer on Windows, install Pillow and [edge-tts](https://github.com/rany2/edge-tts) in a Python environment, put FFmpeg and ffprobe on PATH, and run `python scripts/render-latency-motion.py` from the repository root. The renderer writes the MP4 and an SRT file under `output/embarko/live-motion`.
+To reproduce the explainer on Windows, install Pillow and [edge-tts](https://github.com/rany2/edge-tts) in a Python environment, put FFmpeg and ffprobe on PATH, and run `python scripts/render-latency-motion.py` from the repository root. The renderer writes the MP4 and an SRT file under `output/embarko/live-motion-v2`.
 
 **82-second shooting script. Final recording pending.** The entrant’s own narration, genuine Embarko dashboard footage and a physical-phone take are still needed. Rujul is the proposed narrator. Have the actual entrant confirm their name and first-person lines before recording. Keep the cut private pending the organizer’s eligibility decision. [Unsent eligibility draft](EMBARKO-ELIGIBILITY.md)
 
