@@ -46,7 +46,7 @@ def ease(value):
     return 1 - (1 - min(1, max(0, value))) ** 3
 
 
-def scene_graphic(draw, index, elapsed, duration):
+def scene_graphic(draw, index, elapsed):
     progress = ease(elapsed / 1.1)
     if index == 0:
         draw.text((63, 431), "DOWNLOAD TRAFFIC", font=LABEL, fill=MUTED)
@@ -71,7 +71,7 @@ def scene_graphic(draw, index, elapsed, duration):
                 x = 70 + 400 * (1 - abs(2 * trip - 1))
                 draw.ellipse((x - 5, y - 5, x + 5, y + 5), fill=MINT)
                 if trip == 1:
-                    draw.text((480, y - 10), "✓", font=CAPTION, fill=MINT)
+                    draw.line((479, y, 484, y + 4, 492, y - 5), fill=MINT, width=2)
     elif index == 2:
         draw.text((63, 433), "SIX EXAMPLE RESPONSES", font=LABEL, fill=MUTED)
         for i, endpoint in enumerate((152, 175, 208, 242, 296, 456)):
@@ -127,7 +127,7 @@ def draw_frame(index, elapsed, duration, total_fraction):
         draw.line((x, 429, x, 706), fill="#20382d")
     for y in range(434, 710, 28):
         draw.line((65, y, 475, y), fill="#20382d")
-    scene_graphic(draw, index, elapsed, duration)
+    scene_graphic(draw, index, elapsed)
     if index in (0, 2, 3):
         draw.text((69, 697), "ILLUSTRATION / NO MEASURED VALUES", font=LABEL, fill=MUTED)
     link = "latencylens-congestion-lab.embarko.app"
