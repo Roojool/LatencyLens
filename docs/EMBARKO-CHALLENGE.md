@@ -1,5 +1,7 @@
 # LatencyLens · The Internet Congestion Lab
 
+The live check sends six small same-origin HTTPS requests and records the median, spread, and failed checks. Try one change while investigating a slowdown and retest beside the first run. The checks include browser, network and server time, so they cannot confirm the root cause. The app suggests a next step locally and can copy the timing summary to an AI assistant you choose.
+
 A standalone educational edition about why fast internet can still feel slow. The lab uses React, TypeScript and Vite. Its entire experiment runs in the browser. Start with the load slider or the healthy and congested presets, compare activities at the same load, then download the current result as a PNG.
 
 ## Repository audit

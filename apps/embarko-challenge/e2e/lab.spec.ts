@@ -33,7 +33,7 @@ for (const [width, height] of [[360, 800], [390, 844], [768, 1024], [1024, 768],
     test('fits the experiment and an open comparison', async ({ page }) => {
       const start = page.getByRole('link', { name: 'Try the congestion experiment' });
       await expect(start).toBeInViewport({ ratio: 1 });
-      await expect(page.getByText('Under your load', { exact: true })).toBeInViewport();
+      await expect(page.getByRole('button', { name: 'Run live check' })).toBeInViewport();
       const activity = await page.getByRole('group', { name: 'Activity' }).boundingBox();
       const response = await page.getByRole('heading', { name: 'Response time' }).boundingBox();
       if (width < 720) {
@@ -44,6 +44,7 @@ for (const [width, height] of [[360, 800], [390, 844], [768, 1024], [1024, 768],
 
       await start.click();
       await expect(page).toHaveURL(/#experiment$/);
+      await expect(page.getByText('Under your load', { exact: true })).toBeInViewport();
       await page.getByRole('button', { name: 'Congested' }).click();
       await page.getByRole('combobox', { name: 'Compare with' }).selectOption({ label: 'Downloading' });
       await expect(page.getByRole('article')).toHaveCount(2);

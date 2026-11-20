@@ -14,7 +14,7 @@ Run from the repository root in PowerShell.
 
 ```powershell
 New-Item -ItemType Directory -Force output/embarko | Out-Null
-tar -czf output/embarko/latencylens-source.tar.gz -C apps/embarko-challenge index.html package.json package-lock.json tsconfig.json src -C ../.. LICENSE
+tar -czf output/embarko/latencylens-source.tar.gz -C apps/embarko-challenge index.html package.json package-lock.json tsconfig.json src public -C ../.. LICENSE
 tar -tzf output/embarko/latencylens-source.tar.gz
 curl.exe -sS -X POST https://ship.embarko.ai/apps -H 'X-App-Name: latencylens-congestion-lab' -H 'X-Agent-Name: codex' -F 'source=@output/embarko/latencylens-source.tar.gz' -o output/embarko/deploy-response.json
 curl.exe -fsS https://ship.embarko.ai/apps/latencylens-congestion-lab/status

@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from 'react';
 import { createRoot } from 'react-dom/client';
 import { scenarios, simulate } from './simulation';
 import { downloadSummary } from './summary';
+import { LiveCheck } from './LiveCheck';
 import './style.css';
 
 type Result = ReturnType<typeof simulate>;
@@ -53,7 +54,7 @@ function App() {
   return <>
     <header className="top"><div className="wrap header">
       <a className="brand" href="#"><span aria-hidden="true">◈</span> LatencyLens</a>
-      <span className="tag"><i /> Simulation</span>
+      <a className="tag" href="#live-check"><i /> Live check</a>
     </div></header>
     <main className="wrap">
       <div className="hero">
@@ -61,10 +62,12 @@ function App() {
           <h1>Fast internet.<br /><em>Why the lag?</em></h1>
         </div>
         <div className="intro">
-          <p>See what happens when a video call, a game, or a web request has to wait in line.</p>
+          <p>Check a slow connection, try a change, and see whether it helped.</p>
           <a className="primary" href="#experiment">Try the congestion experiment <span aria-hidden="true">↓</span></a>
         </div>
       </div>
+
+      <LiveCheck />
 
       <section id="experiment" className="lab" tabIndex={-1} aria-labelledby="experiment-title">
         <div className="controls">
@@ -89,7 +92,7 @@ function App() {
         </div>
 
         <div className="visual">
-          <div className="visual-heading"><h2>Response time</h2><span>MODEL · ROUND TRIP</span></div>
+          <div className="visual-heading"><h2>Response time</h2><span>SIMULATION · ROUND TRIP</span></div>
           <p>Watch how long each request has to wait.</p>
           <div className="lanes">
             <div className="lane-label"><span><i /> Idle reference</span><strong>{result.baseline} <small>ms</small></strong></div>

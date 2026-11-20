@@ -104,3 +104,8 @@ summary { display: list-item; width: fit-content; min-height: 44px; padding: 10p
   .track i { transition: none; }
   .track b { animation: none; right: 2px; }
 }
+.live-check { margin-bottom: 14px; scroll-margin-top: 12px; }
+.live-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 12px 4px; }
+.live-results { margin-top: 10px; }
+.live-results [role=status]:empty { display: none; }
+.tag[href] { min-height: 44px; text-decoration: none; }
