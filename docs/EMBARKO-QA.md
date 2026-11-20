@@ -1,5 +1,7 @@
 # Verification for the Internet Congestion Lab
 
+The live-check update passed nine unit tests, the production build, and all 15 Chromium tests. The live tests cover the fixed HTTPS endpoint, retesting, failed responses and cancellation. A separate rerun verified the AI prompt copies both runs and asks the assistant to treat causes as hypotheses.
+
 ## Reproduce
 
 From the repository root, run `npm ci`, `npm run test`, `npm run typecheck`, `npm run build`, and `npm audit --omit=dev`. Run `docker compose config --quiet` to validate the original demo configuration.
